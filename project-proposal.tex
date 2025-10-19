@@ -1,0 +1,148 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+% \pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Remove the "review" option to generate the final version.
+\usepackage[final]{ACL2023}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{A Survey on Enhancement and Efficiency in Retrieval-Augmented Generation}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a seperate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{
+  Guiyan He \\
+  Texas A\&M University \\
+  UIN: 136005919 \\
+  \texttt{guiyanhe@tamu.edu}
+  \And
+  Yi-Hsin Chiang \\
+  Texas A\&M University \\
+  UIN: 137001082 \\
+  \texttt{yihsin.chiang@tamu.edu}
+  \And
+  Xiaochuan (Sean) Ge \\
+  Texas A\&M University \\
+  UIN: 937006752 \\
+  \texttt{xiaochuan@tamu.edu}}
+
+
+\begin{document}
+\maketitle
+% \begin{abstract}
+% This document is a supplement to the general instructions for *ACL authors. It contains instructions for using the \LaTeX{} style file for ACL 2023.
+% The document itself conforms to its own specifications, and is, therefore, an example of what your manuscript should look like.
+% These instructions should be used both for papers submitted for review and for final versions of accepted papers.
+% \end{abstract}
+
+\section{Scope of the Survey}
+
+This survey reviews Retrieval-Augmented Generation (RAG) systems through two primary dimensions: \textbf{Enhancement} and \textbf{Efficiency}.
+
+\begin{itemize}
+    \item \textbf{Enhancement} focuses on improving RAG's performance and output quality. This is divided into two sub-areas:
+    \begin{itemize}
+        \item \textbf{Retriever Optimization:} We will cover methods to improve the relevance and quality of the retrieved information. This includes techniques like query rewriting and advanced hybrid search models.
+        \item \textbf{Generator Optimization:} We will survey strategies that help the language model better synthesize the retrieved context, focusing on improving factual accuracy and handling noisy sources.
+    \end{itemize}
+    
+    \item \textbf{Efficiency} focuses on making RAG systems faster and less resource-intensive. We will survey techniques such as model compression (quantization, distillation) and data pipeline optimizations (efficient indexing).
+\end{itemize}
+
+\section{Why is this an important area to survey? Who would benefit from such a survey?}
+Retrieval-Augmented Generation (RAG) is a promising way to improve large language models by adding external knowledge, which helps make their answers more accurate and easier to understand. The success of a RAG system depends on how well it is optimized; as more RAG applications appear, it becomes even more important to fine-tune each step. A thorough survey of RAG optimization methods can help build more reliable and accurate systems.
+
+This survey is meant for a wide range of readers in both academia and industry. Researchers can use it to get a clear overview of current RAG optimization strategies, performance results, and open questions. Machine learning engineers and system developers will find practical advice for building efficient RAG pipelines that balance quality and cost. Graduate students and new researchers can use this survey to learn the basics and keep up with new trends in RAG optimization.
+
+\section{Has there already been a survey or overview written on this topic? If so, what gaps or limitations exist that your survey could address?}
+There are several recent surveys covering various aspects of Retrieval-Augmented Generation (RAG):
+
+\begin{itemize}
+    \item Pengcheng Jiang, Siru Ouyang, Yizhu Jiao, Ming Zhong, Runchu Tian, and Jiawei Han. 2025. \textit{Retrieval and Structuring Augmented Generation with Large Language Models.}
+    \item Gan, Aoran; Yu, Hao; Zhang, Kai; Liu, Qi; Yan, Wenyu; Huang, Zhenya; Tong, Shiwei; and Hu, Guoping. (2025). \textit{Retrieval Augmented Generation Evaluation in the Era of Large Language Models: A Comprehensive Survey.} \url{https://doi.org/10.48550/arXiv.2504.14891}
+    \item Cheng, Mingyue; Luo, Yucong; Ouyang, Jie; Liu, Qi; Liu, Huijie; Li, Li; Yu, Shuo; Zhang, Bohou; Cao, Jiawei; Ma, Jie; Wang, Daoyu. (2025). \textit{A Survey on Knowledge-Oriented Retrieval-Augmented Generation.} \url{https://doi.org/10.48550/arXiv.2503.10677}
+    \item Hu, Yucheng; Lu, Yuxing. (2024). \textit{RAG and RAU: A Survey on Retrieval-Augmented Language Models in Natural Language Processing.} \url{https://doi.org/10.2139/ssrn.5015182}
+\end{itemize}
+
+While some surveys have looked at Retrieval-Augmented Generation (RAG) in general, most only cover broad categories and do not go into detail about how to optimize each part of the process. There is little discussion about specific ways to improve accuracy, efficiency, or grounding when there are limits on computing power or speed. New topics like dynamic retrieval, adaptive query reformulation, budget-aware context compression, and feedback-driven optimization are also not covered much. Many studies do not compare how well optimization methods work across different fields or types of data. A focused survey on RAG optimization can address these gaps by bringing together current methods, highlighting best practices, and pointing out challenges for building better and more reliable systems.
+\section{Survey Structure}
+
+The survey will be organized to reflect the core themes of Enhancement and Efficiency.
+
+\begin{itemize}
+    \item \textbf{1. Introduction:} Defines the RAG framework and introduces the survey's structure, centered on the two main goals of enhancing performance and improving efficiency.
+    
+    \item \textbf{2. Enhancement Methods:} This section will be the core of the survey, reviewing papers that improve RAG's output quality. It will be divided into two main parts:
+    \begin{itemize}
+        \item \textit{2.1 Retriever Optimization:} A review of literature on improving the retrieval component.
+        \item \textit{2.2 Generator Optimization:} A review of literature on improving the generation component.
+    \end{itemize}
+    
+    \item \textbf{3. Efficiency Methods:} This section reviews papers focused on making RAG systems faster and more lightweight, covering both model-centric and data-centric optimizations.
+    
+    \item \textbf{4. Conclusion:} We will summarize the key findings, discuss the trade-offs between enhancement and efficiency, and outline future research directions.
+\end{itemize}
+
+\section{What do you hope the reader will learn from your survey? What kinds of insights or take-aways will you emphasize?}
+
+The survey will give readers a clear map of RAG optimization techniques and their trade-offs. Key takeaways include:
+\begin{itemize}
+  \item Techniques and Trade-offs: A taxonomy of methods in each category and discussion of when each is appropriate, its method and result.
+  \item Performance vs. Accuracy: Understanding how engineering choices can speed up RAG pipelines with minimal accuracy loss.
+  \item Best Practices and Open Problems: Summarize guidelines, and highlight open questions.
+
+\end{itemize}
+
+\section{A rough timeline to show when you expect to finish what. List a couple of milestones.}
+\begin{itemize}
+  \item Week 1(10/20-10/26): Topic Refinement \& Literature Collection
+  \item Week 2-4(10/27-11/16): Review literature on each section (retriever, generator and efficiency)
+  \item Week 5(11/17-11/23): Integration \& Comparative Analysis
+  \item Week 6(11/24-11/30): Final Revision \& Presentation Preparation
+\end{itemize}
+\end{document}
