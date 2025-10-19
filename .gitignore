@@ -1,0 +1,55 @@
+# =========================================================================
+# LaTeX Project .gitignore
+# =========================================================================
+
+# 忽略最终生成的文档文件。
+# 如果你想将最终的 PDF 文件保留在版本库中，请注释掉下面这一行。
+*.pdf
+*.dvi
+*.ps
+*.html
+*.epub
+
+# 忽略日志和辅助文件 (Auxiliary files)
+*.aux
+*.bbl
+*.blg
+*.brf
+*.fls
+*.fdb_latexmk
+*.idx
+*.ind
+*.ilg
+*.log
+*.lof
+*.lot
+*.out
+*.toc
+
+# 忽略 BibTeX/Biber 生成的文件
+*.bcf
+*.run.xml
+*-blx.bib
+
+# 忽略同步文件 (SyncTeX)
+*.synctex
+*.synctex.gz
+*.synctex(busy)
+
+# 忽略 minted 宏包生成的缓存文件
+_minted*
+*.pyg
+
+# 忽略 LaTeXmk 的输出文件
+latex.out
+
+# 忽略各种编辑器生成的临时文件和备份文件
+*~
+*.swp
+*.swo
+.#*
+*.bak
+*#
+
+# 其他
+_region_.tex
