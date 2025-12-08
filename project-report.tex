@@ -1,0 +1,285 @@
+% This must be in the first 5 lines to tell arXiv to use pdfLaTeX, which is strongly recommended.
+% \pdfoutput=1
+% In particular, the hyperref package requires pdfLaTeX in order to break URLs across lines.
+
+\documentclass[11pt]{article}
+
+% Remove the "review" option to generate the final version.
+\usepackage[final]{ACL2023}
+
+% Standard package includes
+\usepackage{times}
+\usepackage{latexsym}
+
+% For proper rendering and hyphenation of words containing Latin characters (including in bib files)
+\usepackage[T1]{fontenc}
+% For Vietnamese characters
+% \usepackage[T5]{fontenc}
+% See https://www.latex-project.org/help/documentation/encguide.pdf for other character sets
+
+% This assumes your files are encoded as UTF8
+\usepackage[utf8]{inputenc}
+
+% This is not strictly necessary, and may be commented out.
+% However, it will improve the layout of the manuscript,
+% and will typically save some space.
+\usepackage{microtype}
+
+% This is also not strictly necessary, and may be commented out.
+% However, it will improve the aesthetics of text in
+% the typewriter font.
+\usepackage{inconsolata}
+
+
+% If the title and author information does not fit in the area allocated, uncomment the following
+%
+%\setlength\titlebox{<dim>}
+%
+% and set <dim> to something 5cm or larger.
+
+\title{A Survey on Enhancement and Efficiency in Retrieval-Augmented Generation}
+
+% Author information can be set in various styles:
+% For several authors from the same institution:
+% \author{Author 1 \and ... \and Author n \\
+%         Address line \\ ... \\ Address line}
+% if the names do not fit well on one line use
+%         Author 1 \\ {\bf Author 2} \\ ... \\ {\bf Author n} \\
+% For authors from different institutions:
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \And  ... \And
+%         Author n \\ Address line \\ ... \\ Address line}
+% To start a seperate ``row'' of authors use \AND, as in
+% \author{Author 1 \\ Address line \\  ... \\ Address line
+%         \AND
+%         Author 2 \\ Address line \\ ... \\ Address line \And
+%         Author 3 \\ Address line \\ ... \\ Address line}
+
+\author{
+  Guiyan He \\
+  Texas A\&M University \\
+  UIN: 136005919 \\
+  \texttt{guiyanhe@tamu.edu}
+  \And
+  Yi-Hsin Chiang \\
+  Texas A\&M University \\
+  UIN: 137001082 \\
+  \texttt{yihsin.chiang@tamu.edu}
+  \And
+  Xiaochuan (Sean) Ge \\
+  Texas A\&M University \\
+  UIN: 937006752 \\
+  \texttt{xiaochuan@tamu.edu}}
+
+
+\begin{document}
+\maketitle
+\begin{abstract}
+Retrieval-Augmented Generation (RAG) has emerged as a critical approach for enhancing large language models with external knowledge. While RAG systems are widely adopted, they face significant challenges in reliability, accuracy, and computational efficiency. This survey systematically examines recent advances in RAG optimization through two primary dimensions: Enhancement (quality and robustness) and Efficiency (speed and resource usage). We provide detailed analysis of representative methods including Self-RAG, RE-RAG, LLMLingua, and Speculative RAG, offering practical insights for both researchers exploring open problems and engineers implementing production systems. Our focused approach addresses gaps in existing literature by emphasizing concrete optimization techniques rather than broad architectural overviews.
+\end{abstract}
+
+\section{Introduction}
+
+Retrieval-Augmented Generation (RAG) represents a paradigm shift in how large language models (LLMs) interact with external knowledge. By combining the generative capabilities of LLMs with the precision of information retrieval systems, RAG addresses fundamental limitations of standalone language models, including knowledge staleness, hallucination, and limited domain expertise.
+
+Despite widespread adoption, RAG systems face critical bottlenecks that hinder their practical deployment. Reliability remains a concern when retrieved documents contain noise or irrelevant information, leading to degraded output quality. Additionally, computational costs associated with processing lengthy contexts and performing multiple retrieval operations create significant efficiency challenges, particularly for latency-sensitive applications.
+
+\subsection{Motivation and Scope}
+
+The motivation for this survey stems from the observation that success in RAG deployment depends critically on optimization. While RAG offers theoretical advantages, real-world applications demand systems that are both highly accurate and computationally efficient. Current literature often provides broad architectural surveys without sufficient depth on specific optimization techniques.
+
+This survey analyzes RAG through two specific dimensions:
+
+\textbf{Enhancement} focuses on improving quality and robustness through retriever optimization (query rewriting, hybrid search models) and generator optimization (context integration, factual accuracy, noise handling).
+
+\textbf{Efficiency} addresses speed and resource usage through data-centric optimizations (prompt compression, efficient indexing) and model-centric approaches (drafting architectures, inference optimization).
+
+Our target audience includes researchers seeking to understand open problems in RAG optimization and engineers requiring practical guidance for building production pipelines.
+
+\subsection{Gap in Current Literature}
+
+Recent surveys on RAG, such as "Retrieval And Structuring Augmented Generation with Large Language Models" (Jiang et al., 2025) and "Retrieval Augmented Generation Evaluation in the Era of Large Language Models" (Gan et al., 2025), provide valuable overviews of the RAG landscape. However, these works tend to be broad and generic, lacking detailed guidance on specific optimization steps such as dynamic retrieval strategies or budget-aware compression techniques.
+
+Our survey addresses this gap by focusing strictly on optimization techniques rather than general architecture, providing concrete examples of how methods like reflection tokens, relevance estimation, and speculative decoding can be implemented and deployed in practice.
+
+\section{Preliminaries and Foundations}
+
+Before examining optimization techniques, we establish foundational understanding of the RAG framework and its core components.
+
+\subsection{RAG Architecture Overview}
+
+A typical RAG system consists of two primary components working in concert:
+
+\textbf{Retriever:} The retriever component fetches relevant documents or passages from a large corpus based on the input query. Modern retrievers can be categorized into dense retrieval models (such as Dense Passage Retrieval and ColBERT, which use learned embeddings) and sparse retrieval models (such as BM25, which rely on term-based matching). Hybrid approaches that combine both paradigms have shown promising results by leveraging complementary strengths.
+
+\textbf{Generator:} The generator is typically a large language model that takes retrieved documents as additional context and produces coherent, contextually relevant responses. Popular generator architectures include GPT variants, T5, and BART. The generator must effectively synthesize information from multiple sources while maintaining factual accuracy and coherence.
+
+\subsection{Standard RAG Pipeline}
+
+The conventional RAG pipeline operates as follows: Given a user query, the retriever searches a document corpus and returns the top-k most relevant passages. These passages are concatenated with the original query to form an augmented prompt, which is then processed by the generator to produce the final response. This simple architecture, while effective, suffers from several limitations that motivate the optimization techniques surveyed in this paper.
+
+\subsection{Datasets and Evaluation}
+
+Common datasets used for RAG evaluation include Natural Questions (open-domain question answering from Wikipedia), TriviaQA (trivia questions requiring factual knowledge), and WebGPT (web-based question answering with citations). Standard evaluation metrics include exact match accuracy, F1 score for token-level overlap, and increasingly, human evaluation criteria assessing factual correctness, relevance, and coherence.
+
+\section{Enhancement Methods}
+
+Enhancement methods aim to improve the accuracy, reliability, and robustness of RAG systems. We organize these methods by whether they optimize the retrieval or generation phase.
+
+\subsection{Retriever Optimization}
+
+\subsubsection{Self-RAG: Learning to Retrieve, Generate, and Critique}
+
+Asai et al. (2024, ICLR 2024) identified a critical problem with standard RAG: systems retrieve indiscriminately and passively trust retrieved context, leading to hallucinations when documents are irrelevant or contradictory.
+
+Self-RAG introduces a novel approach where the generator learns to output special "reflection tokens" alongside generated text. These tokens enable the model to actively critique its own retrieval and generation process through three mechanisms:
+
+First, retrieval decision tokens ([Retrieve]) allow the model to determine when external information is actually needed, avoiding unnecessary retrieval operations for queries that can be answered from parametric knowledge.
+
+Second, relevance assessment tokens ([IsREL]) enable the model to evaluate whether retrieved documents are relevant to the query, allowing it to ignore irrelevant context.
+
+Third, factuality verification tokens ([IsSUP]) let the model check whether its generated answer is supported by the retrieved evidence, reducing hallucinations.
+
+This self-reflection capability creates a "self-aware" model that can refuse to answer when evidence is insufficient or ignore poor retrieval results. The approach significantly outperforms standard RAG on accuracy benchmarks by internalizing traditional information retrieval metrics (precision and recall) as real-time model decisions.
+
+The key insight from Self-RAG is the convergence of traditional information retrieval logic with modern LLM capabilities. Rather than using offline metrics calculated by external systems, the model learns to compute its own precision and relevance assessments during generation.
+
+\subsubsection{CRAG: Corrective RAG with Web Search}
+
+CRAG (2024) addresses retrieval failures by implementing a web search fallback mechanism. When the system determines that internal documents are incorrect or insufficient, it triggers external search (e.g., Google Search) to find better information sources. This corrective approach improves robustness when initial retrieval fails.
+
+\subsubsection{FLARE: Active Retrieval with Confidence Monitoring}
+
+FLARE (2024) introduces active retrieval that pauses generation dynamically when model confidence drops. Rather than retrieving all information upfront, the system monitors its own certainty and retrieves additional facts only when needed. This approach balances retrieval costs with generation quality.
+
+\subsection{Generator Optimization}
+
+\subsubsection{RE-RAG: Relevance Estimator for Noise Filtering}
+
+Kim et al. (2024, EMNLP 2024) tackled the problem of noise in retrieved documents. Providing too much context, especially with conflicting or irrelevant information, often hurts LLM accuracy rather than helping.
+
+RE-RAG introduces an external Relevance Estimator (RE) that filters contexts before they reach the generator. Unlike simple similarity-based filtering (as in traditional vector search), the relevance estimator assesses utility—whether a document actually helps answer the specific question at hand.
+
+This additional filtering layer improves interpretability by making explicit which documents contribute to the final answer. It reduces the likelihood of the model being misled by conflicting data or distracted by tangentially related information.
+
+The key innovation is distinguishing between similarity (semantic closeness) and utility (actual contribution to answering the query). A document might be semantically similar to the query but still provide no useful information for the specific task.
+
+\subsection{Key Insights from Enhancement Methods}
+
+Enhancement methods reveal an important trend: the evolution from static RAG (simple lookup and generation) to agentic RAG (self-correcting, dynamic systems with feedback loops). Modern RAG systems are becoming more sophisticated in their ability to reason about retrieval quality, adjust their behavior based on confidence, and actively critique their own outputs.
+
+The convergence of traditional information retrieval principles with modern LLM capabilities is particularly noteworthy. Concepts like precision, recall, and relevance—traditionally calculated offline—are now being internalized as model behaviors through techniques like reflection tokens and relevance estimation.
+
+\section{Efficiency Methods}
+
+Efficiency methods address the computational challenges of RAG systems, focusing on reducing latency and resource consumption while maintaining acceptable accuracy.
+
+\subsection{Data-Centric Optimizations}
+
+Data-centric approaches organize, structure, or compress input before it reaches the model, optimizing the information pipeline itself.
+
+\subsubsection{LLMLingua: Prompt Compression for Accelerated Inference}
+
+Jiang et al. (2023, EMNLP 2023) addressed a critical inefficiency in RAG systems: massive input sizes resulting from concatenating multiple retrieved documents with the original query. This leads to high API costs, increased latency, and the "lost-in-the-middle" phenomenon where models struggle to process information buried in long contexts.
+
+LLMLingua introduces sophisticated prompt compression through two key techniques:
+
+\textbf{Coarse-to-Fine Compression:} A Budget Controller assigns different compression ratios to different prompt components. For example, demonstration examples might be compressed aggressively (high compression ratio) while the actual question is preserved with minimal compression. This ensures that critical information remains intact while reducing overall token count.
+
+\textbf{Iterative Token-Level Compression (ITPC):} Rather than removing tokens independently based on importance scores, ITPC calculates conditional dependencies between tokens. This ensures that the compressed prompt remains semantically coherent rather than becoming a disjointed sequence of keywords.
+
+The results are impressive: LLMLingua can compress prompts by up to 20x with minimal performance loss, effectively acting as a "ZIP file" for prompts. This compression enables 2x-5x faster inference while dramatically reducing API costs for systems using commercial LLM providers.
+
+The key insight is that not all tokens in a prompt contribute equally to the final answer. Intelligent compression that preserves semantic coherence while removing redundancy can significantly improve efficiency without sacrificing quality.
+
+\subsection{Model-Centric Optimizations}
+
+Model-centric approaches modify the inference pipeline or model architecture itself to accelerate processing.
+
+\subsubsection{Speculative RAG: Drafting for Parallel Processing}
+
+Google Research, Google DeepMind, and UCSD (ICLR 2025) identified that standard RAG is inherently slow because a large generalist model must sequentially process lengthy retrieved documents. This sequential processing creates high latency and often leads to suboptimal reasoning over long, redundant contexts.
+
+Speculative RAG introduces a drafter-verifier architecture that fundamentally reimagines the RAG pipeline:
+
+\textbf{Drafter-Verifier Decomposition:} Instead of having one large model process all documents, the system uses multiple smaller specialist drafters that generate candidate answers in parallel from different document subsets. A larger generalist verifier then evaluates and selects the best draft. This parallel processing dramatically reduces latency.
+
+\textbf{Multi-Perspective Sampling:} Documents are clustered by topic or perspective, and different drafters process different clusters. This ensures diverse viewpoints are considered and reduces the burden on any single model to reason over all information simultaneously.
+
+The results demonstrate the effectiveness of this approach: latency reductions of approximately 50\% while actually improving accuracy (up to 12.97\% on PubHealth dataset). By offloading the "reading" burden to smaller, faster specialist models, the system achieves better speed-accuracy tradeoffs than traditional single-model RAG.
+
+\subsection{Key Insights from Efficiency Methods}
+
+Efficiency optimization reveals a shift from "brute force" approaches (using the largest available model for all tasks) to compound systems that leverage collaboration between models of different sizes and specializations.
+
+The data-centric versus model-centric distinction is important for implementation: data-centric methods can often be deployed without changing model architectures (making them easier to integrate), while model-centric methods require more substantial pipeline modifications but can achieve greater speedups.
+
+The "small + big" collaboration pattern appears repeatedly in efficient RAG systems: smaller, faster models handle routine processing, filtering, or drafting, while larger models focus on tasks requiring sophisticated reasoning and judgment.
+
+\section{Comparative Analysis}
+
+\subsection{Enhancement vs. Efficiency Trade-offs}
+
+The relationship between enhancement and efficiency is not always antagonistic. The following table summarizes key papers and their primary contributions:
+
+\begin{center}
+\begin{tabular}{|l|l|p{6cm}|}
+\hline
+\textbf{Paper} & \textbf{Dimension} & \textbf{Key Innovation} \\
+\hline
+Self-RAG & Enhancement & Reflection tokens for self-critique \\
+\hline
+RE-RAG & Enhancement & External relevance estimator for filtering \\
+\hline
+CRAG & Enhancement & Web search fallback for correction \\
+\hline
+FLARE & Enhancement & Active retrieval with confidence monitoring \\
+\hline
+LLMLingua & Efficiency & Prompt compression up to 20x \\
+\hline
+Speculative RAG & Efficiency & Drafter-verifier parallel processing \\
+\hline
+\end{tabular}
+\end{center}
+
+Interestingly, some efficiency methods also improve accuracy. Speculative RAG's multi-perspective approach not only reduces latency but enhances reasoning by considering diverse viewpoints. Similarly, LLMLingua's compression can actually improve performance on certain tasks by reducing the "lost-in-the-middle" phenomenon.
+
+However, trade-offs do exist. Heavily optimized pipelines often sacrifice some semantic depth for speed. Finding the "sweet spot" between performance and accuracy requires careful benchmarking on domain-specific tasks.
+
+\subsection{Trends and Future Directions}
+
+Several clear trends emerge from this survey:
+
+\textbf{Static to Agentic RAG:} The field is moving from simple lookup-and-generate systems to sophisticated agents that dynamically adjust retrieval strategies, self-critique outputs, and correct errors through feedback loops.
+
+\textbf{Internalized IR Metrics:} Traditional information retrieval concepts (precision, recall, relevance) are being internalized as model behaviors rather than external evaluation metrics.
+
+\textbf{Compound Architectures:} Single-model RAG is giving way to multi-model systems where specialized components handle different aspects of the pipeline.
+
+\textbf{Context-Aware Optimization:} Modern methods increasingly consider task-specific characteristics when deciding how to retrieve, filter, and generate, rather than applying one-size-fits-all approaches.
+
+\section{Open Problems and Research Directions}
+
+Despite significant progress, several important challenges remain:
+
+\textbf{Lack of Standardized Efficiency Benchmarks:} Most RAG papers evaluate only accuracy metrics. Comprehensive benchmarks that measure latency, throughput, and resource consumption alongside quality metrics are needed.
+
+\textbf{Optimal Model Size Combinations:} While the "small + big" pattern is promising, principled methods for selecting optimal size combinations for drafter-verifier architectures remain under-explored.
+
+\textbf{Retrieval Budget Allocation:} Dynamic strategies for allocating retrieval budgets across different query types and difficulty levels need further investigation.
+
+\textbf{Handling Contradictory Information:} When retrieved documents contain conflicting information, current systems often struggle. Better methods for reasoning over contradictions are needed.
+
+\textbf{Long-Term Context Management:} As conversations extend over multiple turns, efficiently managing growing context while maintaining accuracy presents ongoing challenges.
+
+\section{Conclusion}
+
+This survey has examined recent advances in Retrieval-Augmented Generation through the lenses of enhancement and efficiency. Enhancement methods like Self-RAG and RE-RAG demonstrate how incorporating self-reflection and relevance filtering can significantly improve accuracy and robustness. Efficiency methods like LLMLingua and Speculative RAG show that thoughtful optimization can reduce latency and costs by orders of magnitude without sacrificing quality.
+
+The key insight across both dimensions is the shift toward more intelligent, adaptive systems. Rather than applying fixed retrieval and generation strategies, modern RAG systems dynamically adjust their behavior based on query characteristics, retrieved content quality, and generation confidence.
+
+For practitioners, the practical implications are clear: successful RAG deployment requires careful consideration of both quality and efficiency constraints. The specific optimization techniques chosen should align with application requirements, whether those prioritize absolute accuracy, low latency, or cost efficiency.
+
+As the field continues to evolve, we anticipate further convergence between traditional information retrieval principles and modern LLM capabilities, creating increasingly sophisticated systems that combine the best of both worlds.
+
+\end{document}
