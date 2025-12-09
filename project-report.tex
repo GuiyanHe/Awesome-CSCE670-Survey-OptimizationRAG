@@ -148,68 +148,73 @@ However, a critical gap exists in evaluation methodologies. Most current benchma
 
 \section{Enhancement Methods}
 
-Enhancement methods aim to improve the accuracy, reliability, and robustness of RAG systems by optimizing retrieval precision and generation fidelity. Recent advances in 2024–2025 have moved beyond naive similarity-based retrieval toward agentic, self-correcting architectures that actively critique and refine both what information is retrieved and how it is synthesized. These techniques can be categorized into Retriever Optimization, which improves the relevance and utility of fetched documents, and Generator Optimization, which enhances synthesis and reasoning over retrieved contexts.
+Enhancement methods improve RAG accuracy and reliability by optimizing retrieval and generation. Recent advances (2024–2025) have moved beyond simple matching to agentic systems that actively critique and refine information. We categorize these into \textbf{Retriever Optimization} (finding the right data) and \textbf{Generator Optimization} (using data correctly).
 
 \subsection{Retriever Optimization}
 
-Retriever optimization techniques address the fundamental challenge that semantic similarity does not guarantee utility. By incorporating query refinement, confidence-based triggering, and multi-source fallback mechanisms, these methods ensure that only genuinely relevant information reaches the generator.
+Semantic similarity does not guarantee utility. Retriever optimization addresses this through query planning, confidence checks, and noise filtering.
 
 \subsubsection{Query Understanding and Reformulation}
 
-Traditional retrieval relies on direct query matching, but user queries are often ambiguous or poorly specified. Recent work focuses on intelligent query processing before retrieval execution.
+Old search methods rely on keyword matching, but user questions are often unclear. New methods process the query intelligently before searching.
 
-Multi-Query Intent Modeling: QuIM-RAG \citep{saha2025quim} introduces a Query Intent Modeling framework that decomposes complex queries into multiple sub-intents. Rather than treating a query as a monolithic entity, QuIM-RAG identifies distinct information needs within a single question and generates specialized sub-queries for each intent. This multi-perspective retrieval strategy retrieves diverse, complementary documents that collectively address all aspects of the original query, improving answer completeness by 15-20\% on multi-faceted questions.
+\textbf{Multi-Query Intent Modeling:} QuIM-RAG \citep{saha2025quim} decomposes complex questions into distinct sub-intents, creating specialized searches for each. This multi-perspective strategy ensures diverse document coverage, improving answer completeness by 15-20\% for complex topics.
 
-Hierarchical Query Processing: HiQA \citep{chen2024hiqa} employs a hierarchical query analysis approach that first classifies queries by complexity level (simple factoid, multi-hop reasoning, open-ended exploration), then applies complexity-appropriate retrieval strategies. Simple queries trigger single-pass dense retrieval, while complex queries activate multi-step decomposition and iterative refinement. This adaptive strategy reduces unnecessary computation for simple queries while ensuring adequate coverage for complex ones.
+\textbf{Hierarchical Query Processing:} HiQA \citep{chen2024hiqa} classifies questions by complexity. It applies quick, one-time searches for simple facts and multi-step decomposition for complex reasoning. This saves computational resources while ensuring hard questions get adequate attention.
 
 \subsubsection{Time-Aware and Domain-Adaptive Retrieval}
 
-Not all information ages equally—some facts remain stable while others become stale rapidly. Temporal and domain awareness enables more intelligent retrieval strategies.
+Information relevance depends on timing and context.
 
-Temporal Sensitivity Modeling: TS-RAG \citep{ning2025ts} addresses the temporal dimension of knowledge by incorporating explicit timestamp awareness into retrieval. The system maintains temporal metadata for documents and employs a learned temporal relevance function that weighs recency based on query type. For queries about current events or rapidly evolving domains (e.g., technology news, market data), TS-RAG heavily prioritizes recent documents. For historical or stable information (e.g., mathematical theorems, biographical facts about deceased figures), temporal recency receives minimal weight. This temporal intelligence prevents outdated information from contaminating answers while avoiding unnecessary penalization of older documents when they remain authoritative.
+\textbf{Temporal Sensitivity Modeling:} TS-RAG \citep{ning2025ts} weighs document relevance based on query type. It prioritizes recent data for fast-changing topics (e.g., markets) while ignoring dates for stable facts (e.g., math), preventing the use of outdated information.
 
-Domain-Specific Adaptation: RAG4DS \citep{alqatf2025rag4ds} focuses on data science and technical domains where standard retrieval fails due to specialized vocabulary and notation. The system employs domain-specific embedding models fine-tuned on technical corpora and implements notation-aware tokenization that preserves mathematical expressions and code snippets. By recognizing domain-specific patterns (e.g., variable naming conventions, API signatures), RAG4DS achieves 25-30\% higher retrieval precision on technical queries compared to general-purpose retrieval systems.
+\textbf{Domain-Specific Adaptation:} RAG4DS \citep{alqatf2025rag4ds} tackles technical domains where standard search fails. Using a model trained on technical corpora to understand code and math symbols, it significantly outperforms general search engines.
 
 \subsubsection{Introspective and Dynamic Retrieval}
 
-The shift toward agentic RAG systems emphasizes models that actively decide when, what, and how to retrieve rather than passively accepting pre-fetched documents.
+"Agent" systems actively decide when to search rather than passively receiving data.
 
-Self-Reflective Retrieval: Self-RAG \citep{asai2024selfrag} introduces reflection tokens that enable the model to critique its own retrieval decisions. Through [Retrieve], [IsREL], and [IsSUP] tokens, the model learns to determine when external information is needed, assess document relevance, and verify factual support. This introspective capability transforms the model from a passive consumer of retrieved information into an active, critical reasoner. On open-domain question answering, Self-RAG achieves 5-10\% absolute improvement by reducing errors from irrelevant retrieval and catching hallucinations through factuality checking.
+\textbf{Self-Reflective Retrieval:} Self-RAG \citep{asai2024selfrag} uses "reflection tokens" to critique its own process. The model actively asks if it needs more information or if a document is relevant. This reduces errors by filtering irrelevant data and fixing internal mistakes.
 
-Confidence-Based Active Retrieval: FLARE \citep{jiang2023flare} implements dynamic retrieval that pauses generation when model confidence drops below a learned threshold. Rather than retrieving all context upfront, FLARE monitors token-level confidence during generation and triggers additional retrieval only when uncertainty indicates knowledge gaps. This confidence-aware triggering retrieves precisely when needed, demonstrating particular effectiveness on long-form generation tasks where different sections require different sources. By retrieving incrementally as generation progresses, FLARE maintains higher factual accuracy throughout extended responses while reducing computational overhead for queries where initial context suffices.
+\textbf{Confidence-Based Active Retrieval:} FLARE \citep{jiang2023flare} monitors generation confidence token-by-token. If confidence drops, it pauses to search for more information. This ensures long answers remain factually grounded throughout the text.
+
+\subsubsection{Noise Filtering}
+
+\textbf{The Noise Filter:} RE-RAG \citep{kim2024reragimprovingopendomainqa} acts as a strict relevance filter between search and generation. By discarding useless documents before they reach the LLM, it ensures the model processes only clean, high-quality data.
 
 \subsection{Generator Optimization}
 
-Generator optimization focuses on improving how language models process and synthesize retrieved information, addressing challenges such as handling noisy or contradictory documents, maintaining factual accuracy, and efficiently utilizing context windows.
+Generator optimization improves how the model synthesizes information, handling noise and ensuring factual accuracy.
 
 \subsubsection{Introspective Generation and Self-Correction}
 
-Beyond retrieval critique, modern systems incorporate generation-time reflection that allows models to verify and correct their own outputs.
+Modern systems verify their own outputs during generation.
 
-Dual-Mode Reflection: Self-RAG \citep{asai2024selfrag} extends introspection beyond retrieval into the generation phase. The [IsSUP] (support) and [IsUSE] (utility) tokens enable the model to assess whether generated statements are properly grounded in retrieved evidence and whether the response actually addresses the user's question. This dual verification—checking both factual support and response utility—reduces hallucinations by 12-18\% compared to standard RAG. The model learns these introspective behaviors through supervised learning on labeled data where human annotators mark supported claims and useful responses.
+\textbf{Dual-Mode Reflection:} Self-RAG \citep{asai2024selfrag} extends introspection to the writing phase. It uses tokens to verify if statements are supported by evidence and if they answer the user's question. This dual check reduces hallucinations by 12-18\%.
 
 \subsubsection{Corrective Mechanisms and Fallback Strategies}
 
-When initial retrieval fails or retrieved documents prove inadequate, corrective systems employ sophisticated fallback mechanisms rather than generating from poor-quality context.
+When retrieval fails, systems need a backup plan.
 
-Multi-Source Corrective Retrieval: CRAG \citep{yan2024crag} addresses the critical failure mode where internal knowledge bases lack adequate information. The system employs a relevance evaluator that assesses initial retrieval quality using both embedding similarity and a learned classifier. When documents are deemed incorrect or confidence is low, CRAG triggers external web search (e.g., via Google Search API) to find additional sources. Documents from internal and external sources are combined and reranked before generation. On medical question answering and current events datasets, CRAG achieves 10-15\% improvement on time-sensitive queries by successfully recovering from initial retrieval failures.
+\textbf{Multi-Source Corrective Retrieval:} CRAG \citep{yan2024crag} uses a "grader" to assess document quality. If internal results are poor, it triggers an external web search (e.g., Google). It then combines new sources with internal data to salvage the answer.
 
-Best Practices Integration: Recent work by Li et al. \citep{li2025enhancing} synthesizes practical techniques for production deployments, including hybrid retrieval combining dense and sparse methods, query expansion with semantic variants, and document reranking with cross-encoder models. Their comprehensive evaluation across multiple domains identifies optimal combinations: dense retrieval for semantic matching plus BM25 for exact keyword matching, followed by cross-encoder reranking of top-20 candidates, achieves the best accuracy-efficiency trade-off.
+\textbf{Best Practices Integration:} Li et al. \citep{li2025enhancing} identify that combining keyword search (BM25) with semantic search, followed by re-ranking, offers the optimal balance of speed and accuracy for production systems.
 
 \subsubsection{Structured Reasoning and Graph-Based Synthesis}
 
-Complex queries require reasoning beyond simple document concatenation. Graph-based and structured approaches enable multi-hop inference and global understanding.
+Complex questions require connecting disparate facts.
 
-Knowledge Graph-Based Reasoning: GraphRAG \citep{edge2024graphrag} fundamentally rethinks knowledge representation by constructing entity-relationship graphs from document corpora. During indexing, an LLM extracts entities and relationships, applies community detection algorithms (e.g., Leiden algorithm), and generates hierarchical summaries for each entity cluster. For local queries about specific entities, GraphRAG retrieves graph neighborhoods; for global queries about corpus-wide themes, it employs a map-reduce approach over community summaries. On global sensemaking questions, GraphRAG outperforms naive RAG by 100-130\% in comprehensiveness, though at 10-50x higher indexing cost.
-
-Hybrid Reasoning Enhancement: Yuan et al. \citep{yuan2024hybrid} propose a comprehensive enhancement framework combining multiple techniques: query decomposition for complex questions, retrieval from heterogeneous sources (structured databases, unstructured text, code repositories), and multi-step reasoning with intermediate verification. Their system employs a "reasoning orchestrator" that plans retrieval and reasoning steps, executes them with appropriate tools, and synthesizes results with explicit chain-of-thought explanations. This orchestrated approach achieves 20-25\% improvement on complex reasoning benchmarks requiring multi-hop inference and source integration.
+\textbf{Knowledge Graph-Based Reasoning:} GraphRAG \citep{edge2024graphrag} structures data into entities and relationships rather than flat files. It summarizes entity groups to answer "big picture" questions more comprehensively than standard retrieval methods.
 
 \subsubsection{Retrieval-Augmented Fine-Tuning}
 
-Bridging supervised learning with retrieval-augmented inference creates models specifically trained to leverage retrieved contexts effectively.
+Models can be explicitly trained to handle RAG tasks.
 
-Open-Book Training Paradigm: RAFT \citep{zhang2024raft} trains models explicitly on extracting information from retrieved documents in an "open-book exam" setting. Training data consists of questions, oracle documents containing answers, distractor documents, and chain-of-thought answers citing specific passages. Critically, in a fraction $P$ of training examples, oracle documents are removed to teach the model appropriate behavior when retrieval fails—acknowledging uncertainty rather than hallucinating. On PubMed biomedical QA, RAFT achieves 7-9\% higher accuracy than base models with RAG; on HotpotQA multi-hop reasoning, improvements reach 30-35\%. RAFT occupies a valuable middle ground: domain-specific training that teaches effective context utilization while maintaining flexibility to incorporate new documents at inference time.
+\textbf{Open-Book Training Paradigm:} RAFT \citep{zhang2024raft} trains the model like a student taking an open-book test. Crucially, it sometimes removes correct documents during training. This teaches the model to admit ignorance rather than hallucinate when information is missing.
 
+\subsection{Summary and Future Outlook}
+
+A clear trend emerges: the fusion of traditional search wisdom and modern AI. For example, Self-RAG internalizes traditional "precision" metrics as learnable tokens. The future lies in building these retrieval logic mechanisms directly into the LLM's "brain."
 \section{Efficiency Methods}
 
 As RAG systems scale to enterprise workloads, the research focus in 2024-2025 has pivoted from pure generation quality to addressing critical bottlenecks in latency, memory bandwidth, and inference cost. The expansion of context windows to accommodate extensive retrieval sets has introduced quadratic computational complexity and substantial Time-To-First-Token (TTFT) delays. Recent optimizations can be categorized into Data-Centric methods, which refine the input payload, and Model-Centric methods, which restructure the inference process.
