@@ -31,6 +31,9 @@
 % the typewriter font.
 \usepackage{inconsolata}
 
+% For including images and graphics
+\usepackage{graphicx}
+
 \hypersetup{
     citecolor=blue 
 }
@@ -108,6 +111,13 @@ Recent comprehensive surveys have made valuable contributions to understanding t
 However, these surveys tend toward breadth over depth, covering many techniques at a high level without detailed implementation guidance. They often lack concrete examples of how to implement specific optimizations such as dynamic retrieval strategies that trigger based on model confidence, budget-aware compression that allocates different compression ratios to prompt components, or multi-agent architectures that decompose complex queries into subtasks. Additionally, most surveys organize content by component (retriever, generator, etc.) rather than by optimization goal (accuracy vs. efficiency), making it challenging to understand trade-offs.
 
 Our survey addresses this gap through three key contributions. First, we focus strictly on optimization techniques rather than general architecture, providing actionable guidance for practitioners. Second, we organize content by optimization objective (enhancement vs. efficiency), making trade-offs explicit and enabling informed decision-making. Third, we include detailed case studies of representative techniques, explaining not just what they do but how they achieve their results and when to apply them.
+
+\begin{figure*}[t]
+  \centering
+  \includegraphics[width=\textwidth]{Flowchart}
+  \caption{Overview of Enhancement and Efficiency Methods in RAG}
+  \label{fig:fig1}
+\end{figure*}
 
 \section{Preliminaries and Foundations}
 
