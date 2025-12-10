@@ -168,18 +168,3 @@ We provide detailed analysis of representative methods with practical insights f
 3. **Multimodal Extension**: Adapting approaches to multimodal and multilingual RAG systems
 4. **Agentic Evolution**: Continued shift toward self-correcting, introspective architectures
 5. **System-Level Co-Design**: Deeper integration of retrieval, generation, and serving infrastructure
-
----
-
-## 📖 Citation
-
-If you find this survey useful for your research, please cite:
-
-```bibtex
-@article{he2025rag-survey,
-  title={A Survey on Enhancement and Efficiency in Retrieval-Augmented Generation},
-  author={He, Guiyan and Chiang, Yi-Hsin and Ge, Xiaochuan},
-  institution={Texas A\&M University},
-  year={2025}
-}
-```
